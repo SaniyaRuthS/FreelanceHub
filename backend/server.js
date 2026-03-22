@@ -1,33 +1,60 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const mongoose = require('mongoose');
+const connectDB = require('./config/db');
+const User = require('./models/User');
 
-const authRoutes = require('./routes/authRoutes');
-const freelancerRoutes = require('./routes/freelancerRoutes');
-const demoRoutes = require('./routes/demoRoutes');
-const reviewRoutes = require('./routes/reviewRoutes');
-
+// Configure dotenv
 dotenv.config();
 
+// Initialize express app
 const app = express();
+
+// Apply middleware
 app.use(cors());
 app.use(express.json());
 
+// Main App Routes
+const authRoutes = require('./routes/authRoutes');
+const freelancerRoutes = require('./routes/freelancerRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
+
 app.use('/api/auth', authRoutes);
 app.use('/api/freelancers', freelancerRoutes);
-app.use('/api/demos', demoRoutes);
+app.use('/api/projects', projectRoutes);
 app.use('/api/reviews', reviewRoutes);
 
-app.get('/', (req, res) => {
-  res.send('API is running...');
+// Database Test Route (Requirement #4)
+app.get('/test-insert', async (req, res) => {
+  try {
+    const sampleUser = await User.create({
+      name: 'Test user',
+      email: `test-${Date.now()}@example.com`,
+      password: 'password123',
+      role: 'user'
+    });
+    res.status(201).json({
+      message: 'Test success: User inserted into MongoDB',
+      user: sampleUser
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-const PORT = process.env.PORT || 5000;
+// Root / Health Check
+app.get('/', (req, res) => {
+  res.send('Freelancer Hub API is running...');
+});
 
-mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/freelancehub')
-  .then(() => {
-    console.log('MongoDB Connected');
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  })
-  .catch((error) => console.log(`Error: ${error.message}`));
+const PORT = process.env.PORT || 3001;
+
+// Connect to database before starting server
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}).catch((err) => {
+  console.error('Failed to connect to MongoDB. Check your MONGO_URI.');
+});
