@@ -1,0 +1,149 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  IN_PROGRESS
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum PackageType {
+  BASIC
+  STANDARD
+  PREMIUM
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String?
+  name          String
+  role          Role      @default(BUYER)
+  googleId      String?   @unique
+  isVerified    Boolean   @default(false)
+  verificationScore Float?
+  idType        String?
+  idCardImage   String?
+  selfieImage   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  profile       Profile?
+  gigs          Gig[]     @relation("SellerGigs")
+  ordersAsBuyer Order[]   @relation("BuyerOrders")
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+}
+
+model Profile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  bio         String?
+  avatar      String?
+  skills      String[]
+  languages   String[]
+  location    String?
+  rating      Float    @default(0)
+  totalReviews Int     @default(0)
+  isPro       Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  gigs        Gig[]
+}
+
+model Gig {
+  id          String   @id @default(uuid())
+  sellerId    String
+  seller      User     @relation("SellerGigs", fields: [sellerId], references: [id])
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  title       String
+  description String
+  images      String[]
+  tags        String[]
+  rating      Float    @default(0)
+  totalReviews Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  packages    GigPackage[]
+  orders      Order[]
+}
+
+model GigPackage {
+  id            String      @id @default(uuid())
+  gigId         String
+  gig           Gig         @relation(fields: [gigId], references: [id])
+  type          PackageType
+  name          String
+  description   String
+  price         Float
+  deliveryTime  Int         // in days
+  features      String[]
+  
+  orders        Order[]
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  buyerId         String
+  buyer           User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  gigId           String
+  gig             Gig         @relation(fields: [gigId], references: [id])
+  packageId       String
+  package         GigPackage  @relation(fields: [packageId], references: [id])
+  amount          Float
+  status          OrderStatus @default(PENDING)
+  paymentIntentId String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  review          Review?
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  orderId   String   @unique
+  order     Order    @relation(fields: [orderId], references: [id])
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  senderId    String
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId  String
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  content     String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}

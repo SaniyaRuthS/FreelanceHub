@@ -1,0 +1,15 @@
+{
+  "name": "freelancehub",
+  "version": "1.0.0",
+  "description": "Full-stack Freelance Marketplace",
+  "scripts": {
+    "start:backend": "npm.cmd run start:dev --prefix backend",
+    "start:frontend": "npm.cmd run dev --prefix frontend",
+    "dev": "concurrently \"npm.cmd run start:backend\" \"npm.cmd run start:frontend\"",
+    "start": "npm.cmd run dev",
+    "install:all": "npm.cmd install && npm.cmd install --prefix backend && npm.cmd install --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
