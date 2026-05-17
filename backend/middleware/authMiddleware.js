@@ -26,4 +26,12 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = { protect };
+const freelancerOnly = (req, res, next) => {
+  if (req.user && req.user.role === 'freelancer') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Not authorized as a freelancer' });
+  }
+};
+
+module.exports = { protect, freelancerOnly };

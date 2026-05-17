@@ -13,7 +13,7 @@ echo.
 echo Creating uploads directory...
 if not exist "backend\uploads" mkdir "backend\uploads"
 echo.
-echo Starting Backend (port 5000)...
+echo Starting Backend (port 3001)...
 start "FreelanceHub-Backend" cmd /c "cd backend && npm run start:express"
 echo.
 echo Starting Frontend (port 3000)...
@@ -21,7 +21,7 @@ start "FreelanceHub-Frontend" cmd /c "cd frontend && npm run dev"
 echo.
 echo ============================================
 echo   Servers starting in separate windows!
-echo   Backend:  http://localhost:5000
+echo   Backend:  http://localhost:3001
 echo   Frontend: http://localhost:3000
 echo ============================================
 echo.
